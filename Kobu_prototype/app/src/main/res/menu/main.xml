@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.prototype.MainActivity" >
+    <item android:id="@+id/play" android:title="play mode" android:orderInCategory="100"></item>
+    <item android:id="@+id/free" android:title="free mode" android:orderInCategory="100"></item>
+
+</menu>
