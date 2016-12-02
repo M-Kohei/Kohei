@@ -15,14 +15,14 @@ import trikita.log.Log;
 /**
  * Created by matu on 2016/11/19.
  */
-public class Sound_Map {
+public class SoundMap {
     HashMap<Integer,Integer> map = new HashMap<Integer ,Integer>();
     HashMap<Integer,Float> x_map =new HashMap<Integer,Float>();
     HashMap<Integer,Float> y_map =new HashMap<Integer,Float>();
     SoundPool soundpool;
     ArrayList<File> wavList = new ArrayList<>();
 
-    public Sound_Map(Context context){
+    public SoundMap(Context context){
         SoundPool.Builder builder = new SoundPool.Builder();
         builder.setMaxStreams(12);						//音を同時に鳴らす数を設定
         soundpool = builder.build();

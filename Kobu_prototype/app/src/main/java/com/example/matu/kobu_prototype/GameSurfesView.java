@@ -10,7 +10,6 @@ import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 
 import java.util.Random;
 
@@ -23,7 +22,7 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
 
     Paint p = new Paint();
     Bitmap img0,img1,img2;
-    Sound_Map sound_map;
+    SoundMap sound_map;
 
     SurfaceHolder mHolder;
     Thread sled ;
@@ -43,7 +42,7 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
         super(context);
         mHolder = getHolder();
         mHolder.addCallback(this);
-        sound_map = new Sound_Map(context);
+        sound_map = new SoundMap(context);
         touchevent = new TouchEvent();
 
         r = new Random();
