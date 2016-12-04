@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Kobu_prototype</string>
+	<string name="app_name">Kobu_prototype</string>
+	<string name="do_search_able">do searchable</string>
 </resources>

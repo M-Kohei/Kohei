@@ -1,0 +1,7 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.matu.kobu_prototype.BluetoothConnectActivity" >
+    <item android:id="@+id/do_search_able" android:title="@string/do_search_able" android:orderInCategory="100"></item>
+
+</menu>
