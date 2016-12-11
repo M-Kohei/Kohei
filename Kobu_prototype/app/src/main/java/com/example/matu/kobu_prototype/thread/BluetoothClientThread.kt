@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothSocket
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import rx.Observable
+import rx.Subscriber
 import java.io.IOException
 import java.util.*
 
@@ -11,7 +13,7 @@ import java.util.*
 /**
  * Created by riku on 16/12/04.
  */
-class BluetoothClientThread (context: Context, device: BluetoothDevice, btAdapter: BluetoothAdapter) : Thread() {
+class BluetoothClientThread (context: Context, device: BluetoothDevice, btAdapter: BluetoothAdapter) : Observable.OnSubscribe<BluetoothSocket> {
 	//クライアント側の処理
 	private val clientSocket: BluetoothSocket?
 	private val mDevice: BluetoothDevice
@@ -38,7 +40,7 @@ class BluetoothClientThread (context: Context, device: BluetoothDevice, btAdapte
 		clientSocket = tmpSock
 	}
 
-	override fun run() {
+	override fun call(t: Subscriber<in BluetoothSocket>) {
 		//接続要求を出す前に、検索処理を中断する。
 		if (myClientAdapter.isDiscovering) {
 			myClientAdapter.cancelDiscovery()
@@ -54,12 +56,14 @@ class BluetoothClientThread (context: Context, device: BluetoothDevice, btAdapte
 				e.printStackTrace()
 			}
 
-			return
+			t.onError(e)
 		}
 
 		//接続完了時の処理
 //		val rw = ReadWriteModel(mContext, clientSocket, myNumber)
 //		rw.start()
+		t.onNext(clientSocket)
+		t.onCompleted()
 	}
 
 	fun cancel() {
