@@ -1,26 +1,19 @@
-package com.example.matu.kobu_prototype
+package com.example.matu.kobu_prototype.fragment
 
-
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED
-import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothDevice.ACTION_FOUND
-import android.bluetooth.BluetoothDevice.ACTION_NAME_CHANGED
 import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.support.v4.app.Fragment
+import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.ProgressBar
+import com.example.matu.kobu_prototype.R
 import com.example.matu.kobu_prototype.thread.BluetoothClientThread
 import com.example.matu.kobu_prototype.thread.BluetoothServerThread
 import rx.Observable
@@ -29,21 +22,27 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import trikita.log.Log
 
-
-class BluetoothConnectActivity : AppCompatActivity() {
+/**
+ * Created by riku on 16/12/17.
+ */
+class BluetoothConnectFragment : Fragment() {
 	private val REQUEST_ENABLE_BLUETOOTH = 1
 
-	private var connectAbleListView:ListView? = null
-	private var searchProgress:ProgressBar? = null
+	private var connectAbleListView: ListView? = null
+	private var searchProgress: ProgressBar? = null
 	private val mBtAdapter = BluetoothAdapter.getDefaultAdapter()
 	private val foundDeviceList = mutableListOf<BluetoothDevice>()
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContentView(R.layout.activity_bluetooth_connect)
+	}
 
+	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+		super.onCreateView(inflater, container, savedInstanceState)
+		setHasOptionsMenu(true)
 
-		findViewById(R.id.start_search_button).setOnClickListener {v ->
+		val view = inflater?.inflate(R.layout.fragment_bluetooth_connect, container, false)
+		view?.findViewById(R.id.start_search_button)?.setOnClickListener { v ->
 			Log.d("button click")
 			if (!mBtAdapter.isEnabled) {
 				//OFFだった場合、ONにすることを促すダイアログを表示する画面に遷移
@@ -52,11 +51,11 @@ class BluetoothConnectActivity : AppCompatActivity() {
 			}
 			//インテントフィルターとBroadcastReceiverの登録
 			val filter = IntentFilter()
-			filter.addAction(ACTION_DISCOVERY_STARTED)
-			filter.addAction(ACTION_FOUND)
-			filter.addAction(ACTION_NAME_CHANGED)
-			filter.addAction(ACTION_DISCOVERY_FINISHED)
-			registerReceiver(DeviceFoundReceiver, filter)
+			filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+			filter.addAction(BluetoothDevice.ACTION_FOUND)
+			filter.addAction(BluetoothDevice.ACTION_NAME_CHANGED)
+			filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+			activity.registerReceiver(DeviceFoundReceiver, filter)
 
 			//接続可能なデバイスを検出
 			if (mBtAdapter.isDiscovering) {
@@ -68,19 +67,24 @@ class BluetoothConnectActivity : AppCompatActivity() {
 			mBtAdapter.startDiscovery()
 		}
 
-		searchProgress = findViewById(R.id.search_progress) as? ProgressBar
-		connectAbleListView = findViewById(R.id.connect_able_list_view) as? ListView
-		connectAbleListView?.adapter = ArrayAdapter<String>(applicationContext, R.layout.list_view_black_text_layout)
+		searchProgress = view?.findViewById(R.id.search_progress) as? ProgressBar
+		connectAbleListView = view?.findViewById(R.id.connect_able_list_view) as? ListView
+		connectAbleListView?.adapter = ArrayAdapter<String>(activity.applicationContext, R.layout.list_view_black_text_layout)
 		connectAbleListView?.setOnItemClickListener { adapterView, view, index, id ->
 			val device = foundDeviceList[index]
 			Log.d(device.name + "," + device.address)
 
-			Observable.create(BluetoothClientThread(applicationContext, device, mBtAdapter))
+			Observable.create(BluetoothClientThread(activity.applicationContext, device, mBtAdapter))
 					.subscribeOn(Schedulers.newThread())
 					.observeOn(AndroidSchedulers.mainThread())
 					.subscribe(object: Observer<BluetoothSocket> {
+						var socket: BluetoothSocket? = null
 						override fun onCompleted() {
 							Log.d("completed")
+							val gameActivityIntent = Intent()
+							gameActivityIntent.setClassName("com.example.matu.kobu_prototype","com.example.matu.kobu_prototype.MainActivity")
+//							gameActivityIntent.putExtra(BLUETOOTH_SOCKET, socket)
+							startActivity(gameActivityIntent)
 						}
 
 						override fun onError(e: Throwable) {
@@ -89,6 +93,7 @@ class BluetoothConnectActivity : AppCompatActivity() {
 
 						override fun onNext(progress: BluetoothSocket) {
 							Log.d(progress)
+							socket = progress
 						}
 					})
 		}
@@ -100,23 +105,10 @@ class BluetoothConnectActivity : AppCompatActivity() {
 		} else {
 			//Bluetooth非対応端末の場合の処理
 			Log.d("Bluetoothがサポートれていません。")
-			finish()
+			activity.finish()
 		}
 
-
-	}
-
-	override fun onActivityResult(requestCode:Int,ResultCode :Int, date:Intent){
-		//ダイアログ画面から結果を受けた後の処理を記述
-		if(requestCode == REQUEST_ENABLE_BLUETOOTH){
-			if(ResultCode == Activity.RESULT_OK){
-				//BluetoothがONにされた場合の処理
-				Log.d("BluetoothをONにしてもらえました。")
-			}else{
-				Log.d("BluetoothがONにしてもらえませんでした。")
-				finish()
-			}
-		}
+		return view
 	}
 
 	private val DeviceFoundReceiver = object: BroadcastReceiver(){
@@ -125,20 +117,20 @@ class BluetoothConnectActivity : AppCompatActivity() {
 			val action = intent.action
 			val foundDevice: BluetoothDevice
 			val connectAbleListAdapter = connectAbleListView?.adapter as? ArrayAdapter<String>
-			if(ACTION_DISCOVERY_STARTED.equals(action)){
+			if(BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)){
 				Log.d("スキャン開始")
 				connectAbleListAdapter?.clear()
 				foundDeviceList.clear()
 				searchProgress?.visibility = View.VISIBLE
 			}
-			if(ACTION_FOUND.equals(action)){
+			if(BluetoothDevice.ACTION_FOUND.equals(action)){
 				//デバイスが検出された
 				foundDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 				connectAbleListAdapter?.add(foundDevice.name + "\n" + foundDevice.address)
 				foundDeviceList.add(foundDevice)
 				Log.d("ACTION_FOUND", foundDevice.name)
 			}
-			if(ACTION_DISCOVERY_FINISHED.equals(action)){
+			if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
 				Log.d("スキャン終了")
 				searchProgress?.visibility = View.GONE
 			}
@@ -150,12 +142,17 @@ class BluetoothConnectActivity : AppCompatActivity() {
 		//サーバースレッド起動、クライアントのからの要求待ちを開始
 		Log.d("bluetooth server start")
 
-		Observable.create(BluetoothServerThread(this, mBtAdapter))
+		Observable.create(BluetoothServerThread(activity.applicationContext, mBtAdapter))
 				.subscribeOn(Schedulers.newThread())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(object: Observer<BluetoothSocket> {
+					var socket: BluetoothSocket? = null
 					override fun onCompleted() {
 						Log.d("completed")
+						val gameActivityIntent = Intent()
+						gameActivityIntent.setClassName("com.example.matu.kobu_prototype","com.example.matu.kobu_prototype.MainActivity")
+//						gameActivityIntent.putExtra(BLUETOOTH_SOCKET, socket?.inputStream)
+						startActivity(gameActivityIntent)
 					}
 
 					override fun onError(e: Throwable) {
@@ -164,14 +161,14 @@ class BluetoothConnectActivity : AppCompatActivity() {
 
 					override fun onNext(progress: BluetoothSocket) {
 						Log.d(progress)
+						socket = progress
 					}
 				})
 	}
 
-	override fun onCreateOptionsMenu(menu: Menu): Boolean {
-		val inflater = menuInflater
+	override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+		super.onCreateOptionsMenu(menu, inflater)
 		inflater.inflate(R.menu.bluetooth_activity_menu, menu)
-		return true
 	}
 
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
