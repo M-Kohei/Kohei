@@ -21,6 +21,12 @@ import rx.Observer
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import trikita.log.Log
+import android.app.Activity.RESULT_OK
+import android.app.Activity
+import android.content.ContentValues.TAG
+import android.widget.Toast
+
+
 
 /**
  * Created by riku on 16/12/17.
@@ -181,6 +187,20 @@ class BluetoothConnectFragment : Fragment() {
 				return true
 			}
 			else -> return super.onOptionsItemSelected(item)
+		}
+	}
+
+	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+		super.onActivityResult(requestCode, resultCode, data)
+		if (requestCode != REQUEST_ENABLE_BLUETOOTH)
+			return
+		if (resultCode == Activity.RESULT_OK) {
+			// When the request to enable Bluetooth returns
+			// Bluetooth is now enabled, so set up a chat session
+		} else {
+			// User did not enable Bluetooth or an error occured
+			Log.d(TAG, "BT not enabled")
+			activity.finish()
 		}
 	}
 }
