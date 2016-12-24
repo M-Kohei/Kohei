@@ -9,6 +9,9 @@ import android.view.MotionEvent;
  * Created by matu on 2016/11/19.
  */
 public class TouchEvent {
+    private int displayHeight;
+    private int displayWidth;
+
     private Cord cord;
     Bitmap img1,img2;
     int cord_number[] = {-1,1,0,2,5,-1,4,3};
@@ -72,7 +75,7 @@ public class TouchEvent {
                 case MotionEvent.ACTION_DOWN:
                     //タッチした1点めの処理 countは必ず1のはず
                     Circle c=new Circle(id);
-                    if(y<0.7*MainActivity.displayHeight){
+                    if(y<0.7*displayHeight){
                         c.setPos((int)x,(int)y-(int)posY);
                         c.setAction(MotionEvent.ACTION_DOWN);
                         c.setcolor(img1.getPixel((int)x,(int)y-(int)posY));
@@ -80,7 +83,7 @@ public class TouchEvent {
                         cord.cord_list.add(c);
                     }
                     else{
-                        c.setcolor(img2.getPixel((int)x,(int)y-(int)0.7*MainActivity.displayHeight));
+                        c.setcolor(img2.getPixel((int)x,(int)y-(int)0.7*displayHeight));
                         c.set_cord_number(get_touch_cordnumber(c.color));
                         c.sound_play = true;
                         cord.play = c;
@@ -90,7 +93,7 @@ public class TouchEvent {
                     if(i == MotionEventCompat.getActionIndex(event)){
                         //はじめて画面にタッチした点の処理
                         Circle c1=new Circle(id);
-                        if(y<0.7*MainActivity.displayHeight){
+                        if(y<0.7*displayHeight){
                             c1.setPos((int)x,(int)y-(int)posY);
                             c1.setAction(MotionEvent.ACTION_DOWN);
                             c1.setcolor(img1.getPixel((int)x,(int)y-(int)posY));
@@ -98,7 +101,7 @@ public class TouchEvent {
                             cord.cord_list.add(c1);
                         }
                         else{
-                            c1.setcolor(img2.getPixel((int)x,(int)y-(int)0.7*MainActivity.displayHeight));
+                            c1.setcolor(img2.getPixel((int)x,(int)y-(int)0.7*displayHeight));
                             c1.set_cord_number(get_touch_cordnumber(c1.color));
                             c1.sound_play = true;
                             cord.play = c1;
@@ -143,7 +146,7 @@ public class TouchEvent {
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if(y < 0.7*MainActivity.displayHeight){
+                    if(y < 0.7*displayHeight){
                         for(int k=0;k<cord.cord_list.size();k++){
                             if(cord.cord_list.get(k).id == id){
                                 cord.cord_list.get(k).setAction(MotionEvent.ACTION_MOVE);
@@ -154,7 +157,7 @@ public class TouchEvent {
                         }
                     }
                     else{
-                        int pixel_color = img2.getPixel((int)x,(int)y-(int)0.7*MainActivity.displayHeight);
+                        int pixel_color = img2.getPixel((int)x,(int)y-(int)0.7*displayHeight);
                         if(cord.play.get_color() != pixel_color && pixel_color != Color.WHITE){
                             cord.play.setcolor(pixel_color);
                             cord.play.set_cord_number(get_touch_cordnumber(cord.play.color));
@@ -169,5 +172,13 @@ public class TouchEvent {
             }
         }
         return true;
+    }
+
+    public void setDisplayHeight(int displayHeight) {
+        this.displayHeight = displayHeight;
+    }
+
+    public void setDisplayWidth(int displayWidth) {
+        this.displayWidth = displayWidth;
     }
 }

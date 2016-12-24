@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -16,7 +17,12 @@ import java.util.Random;
 /**
  * Created by matu on 2016/11/19.
  */
-public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callback ,Runnable{
+public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callback ,Runnable{
+
+    private int displayWidth;
+    private int displayHeight;
+
+    private int playMode;
 
     private float limitY,PosY;
 
@@ -38,16 +44,24 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
     long time1=0;
     Random r;
 
-    public GameSurfesView(Context context) {
-        super(context);
+    public GameSurfaceView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
         mHolder = getHolder();
         mHolder.addCallback(this);
         sound_map = new SoundMap(context);
         touchevent = new TouchEvent();
+        touchevent.setDisplayHeight(displayHeight);
+        touchevent.setDisplayWidth(displayWidth);
+
 
         r = new Random();
 
         this.context=context;
+    }
+
+    public GameSurfaceView(Context context) {
+        this(context, null);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -93,17 +107,21 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         Resources res = this.getContext().getResources();
+        displayWidth = this.getWidth();
+        displayHeight = this.getHeight();
+
         img0 = BitmapFactory.decodeResource(res, R.mipmap.guita_flet2);
         img1 = BitmapFactory.decodeResource(res, R.mipmap.guita_flet2_coloar_map);
         img2 = BitmapFactory.decodeResource(res, R.mipmap.guita_zyaro_n);
         pictureWidth=img0.getWidth();
         h = img0.getHeight();
-        sx=(float)MainActivity.displayWidth/(float)pictureWidth;
-        limitY=h*sx-(float )0.7*MainActivity.displayHeight;
+        sx=(float)displayWidth/(float)pictureWidth;
+        limitY=h*sx-(float )0.7*displayHeight;
 
-        img0=Bitmap.createScaledBitmap(img0,MainActivity.displayWidth,(int) (h*sx),true);
-        img1=Bitmap.createScaledBitmap(img1,MainActivity.displayWidth,(int) (h*sx),true);
-        img2=Bitmap.createScaledBitmap(img2,MainActivity.displayWidth,(int) (h*sx),true);
+
+        img0=Bitmap.createScaledBitmap(img0,displayWidth,(int) (h*sx),true);
+        img1=Bitmap.createScaledBitmap(img1,displayWidth,(int) (h*sx),true);
+        img2=Bitmap.createScaledBitmap(img2,displayWidth,(int) (h*sx),true);
 
         PosY =  -1 * limitY/2;
 
@@ -144,7 +162,7 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
             p.setColor(Color.RED);
             p.setTextSize(60);
 
-            if(MainActivity.play_mode==1){
+            if(playMode ==1){
                 if(touchevent.get_touch_count() == 0){
                     int move_mode = get_move_mode(AcSensor.Inst().getY());
                     set_positionY(move_mode);
@@ -161,7 +179,7 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
 
 
                 c.drawBitmap(img1,0,PosY,p);
-                c.drawBitmap(img2,0,(float) (0.7*MainActivity.displayHeight),p);
+                c.drawBitmap(img2,0,(float) (0.7*displayHeight),p);
 
                 //testtext
                 //c.drawText("AcX : "+AcSensor.Inst().getX(), 50, 100, p);
@@ -180,10 +198,10 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
                 c.drawText("limitY" +limitY,50,700, p);
                 c.drawText("ph:"+img1.getHeight()+" pw:"+img1.getWidth()+" sx:"+sx,50, 800, p);
                 c.drawText("PosY" +PosY,50,900, p);
-                c.drawText("dW:"+MainActivity.displayWidth+" pW:"+pictureWidth,50,1000,p);
+                c.drawText("dW:"+displayWidth+" pW:"+pictureWidth,50,1000,p);
                 //testtext
             }
-            else if(MainActivity.play_mode==2){
+            else if(playMode ==2){
                 if(touchevent.get_touch_count() == 1 && set_T){
                     target_position = -1 * (r.nextInt(2686));
                     step = (target_position - PosY)/30;
@@ -204,7 +222,7 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
                 }
 
                 c.drawBitmap(img1,0,PosY,p);
-                c.drawBitmap(img2,0,(float) (0.7*MainActivity.displayHeight),p);
+                c.drawBitmap(img2,0,(float) (0.7*displayHeight),p);
 
                 long time2=System.nanoTime();
                 c.drawText("time1 :"+time1, 50, 100, p);
@@ -223,5 +241,9 @@ public class GameSurfesView extends SurfaceView implements SurfaceHolder.Callbac
 
             mHolder.unlockCanvasAndPost(c);
         }
+    }
+
+    public void setPlayMode(int playMode) {
+        this.playMode = playMode;
     }
 }
